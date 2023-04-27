@@ -5,11 +5,16 @@ import java.util.Scanner;
 
 public class Field {
 
-    static Scanner scanner = new Scanner(System.in);
-    char[][] field = new char[10][10];
+    private static final Scanner scanner = new Scanner(System.in);
+    private final char[][] field = new char[10][10];
+    private final char[][] rivalField = new char[10][10];
+    private char[][] tmpField = field;          //  [field / rivalField] for printing
 
     public Field() {
         for (char[] chars : field) {
+            Arrays.fill(chars, '~');
+        }
+        for (char[] chars : rivalField) {
             Arrays.fill(chars, '~');
         }
     }
@@ -18,7 +23,7 @@ public class Field {
     public void printField() {
         System.out.println("  1 2 3 4 5 6 7 8 9 10");
         char row = 'A';
-        for (char[] chars : field) {
+        for (char[] chars : tmpField) {
             System.out.print(row);
             for (char ch : chars) {
                 System.out.print(" " + ch);
@@ -27,6 +32,12 @@ public class Field {
             row++;
         }
         System.out.println();
+        tmpField = field;
+    }
+
+    public void printRivalField() {
+        tmpField = rivalField;
+        printField();
     }
 
     public void placeShips() {
@@ -62,16 +73,17 @@ public class Field {
                 isShot = true;
                 if (field[raw][column] == 'O') {
                     field[raw][column] = 'X';
+                    rivalField[raw][column] = 'X';
                     printField();
                     System.out.println("You hit a ship!\n");
                 } else {
                     field[raw][column] = 'M';
-                    printField();
+                    rivalField[raw][column] = 'M';
+                    printRivalField();
                     System.out.println("You missed!\n");
                 }
             }
         }
-
     }
 
     private void addShipToField(Ship ship) {
