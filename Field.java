@@ -1,8 +1,11 @@
 package battleship;
 
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Field {
+
+    static Scanner scanner = new Scanner(System.in);
     char[][] field = new char[10][10];
 
     public Field() {
@@ -42,6 +45,33 @@ public class Field {
         Ship destroyer = new Ship("Destroyer", 2);                 // 2 cells
         addShipToField(destroyer);
         printField();
+    }
+
+    public void takeAShot() {
+        String LineOfShotCoordinates;
+        boolean isShot = false;
+        while(!isShot) {
+            LineOfShotCoordinates = scanner.nextLine();
+            System.out.println();
+            int raw = LineOfShotCoordinates.charAt(0) - 65;
+            int column = Integer.parseInt(LineOfShotCoordinates.substring(1)) - 1;
+
+            if ((raw < 0 || raw > ('J' - 65)) || (column < 0 || column > 9)) {
+                System.out.println("Error! You entered the wrong coordinates! Try again:\n");
+            } else {
+                isShot = true;
+                if (field[raw][column] == 'O') {
+                    field[raw][column] = 'X';
+                    printField();
+                    System.out.println("You hit a ship!\n");
+                } else {
+                    field[raw][column] = 'M';
+                    printField();
+                    System.out.println("You missed!\n");
+                }
+            }
+        }
+
     }
 
     private void addShipToField(Ship ship) {
