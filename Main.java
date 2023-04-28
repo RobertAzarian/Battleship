@@ -7,9 +7,8 @@ public class Main {
         field1.printField();
         field1.placeShips();
         System.out.println("The game starts!\n");
-        field1.printRivalField();
+        field1.printFieldForRival();
         System.out.println("Take a shot!\n");
-        field1.takeAShot();
-        field1.printField();
+        field1.playerTurn();
     }
 }

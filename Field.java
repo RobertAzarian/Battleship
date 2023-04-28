@@ -6,15 +6,19 @@ import java.util.Scanner;
 public class Field {
 
     private static final Scanner scanner = new Scanner(System.in);
+    private static int countOfSunkShips = 0;
     private final char[][] field = new char[10][10];
-    private final char[][] rivalField = new char[10][10];
+    private final char[][] fieldForRival = new char[10][10];
     private char[][] tmpField = field;          //  [field / rivalField] for printing
+
+    Ship[] ships = new Ship[5];
+    public static boolean areShipsDestroyed = false;
 
     public Field() {
         for (char[] chars : field) {
             Arrays.fill(chars, '~');
         }
-        for (char[] chars : rivalField) {
+        for (char[] chars : fieldForRival) {
             Arrays.fill(chars, '~');
         }
     }
@@ -35,52 +39,100 @@ public class Field {
         tmpField = field;
     }
 
-    public void printRivalField() {
-        tmpField = rivalField;
+    public void printFieldForRival() {
+        tmpField = fieldForRival;
         printField();
     }
 
     public void placeShips() {
-        Ship aircraftCarrier = new Ship("Aircraft Carrier", 5);    // 5 cells
-        addShipToField(aircraftCarrier);
+        ships[0] = new Ship("Aircraft Carrier", 5);    // 5 cells
+        addShipToField(ships[0]);
         printField();
-        Ship battleship = new Ship("Battleship", 4);               // 4 cells
-        addShipToField(battleship);
+        ships[1] = new Ship("Battleship", 4);               // 4 cells
+        addShipToField(ships[1]);
         printField();
-        Ship submarine  = new Ship("Submarine", 3);                // 3 cells
-        addShipToField(submarine);
+        ships[2]  = new Ship("Submarine", 3);                // 3 cells
+        addShipToField(ships[2]);
         printField();
-        Ship cruiser = new Ship("Cruiser", 3);                     // 3 cells
-        addShipToField(cruiser);
+        ships[3] = new Ship("Cruiser", 3);                     // 3 cells
+        addShipToField(ships[3]);
         printField();
-        Ship destroyer = new Ship("Destroyer", 2);                 // 2 cells
-        addShipToField(destroyer);
+        ships[4] = new Ship("Destroyer", 2);                 // 2 cells
+        addShipToField(ships[4]);
         printField();
     }
 
-    public void takeAShot() {
+    public void playerTurn() {
+        while (!areShipsDestroyed) {
+            takeAShot();
+        }
+    }
+
+
+    private void takeAShot() {
         String LineOfShotCoordinates;
         boolean isShot = false;
         while(!isShot) {
             LineOfShotCoordinates = scanner.nextLine();
             System.out.println();
-            int raw = LineOfShotCoordinates.charAt(0) - 65;
+            int row = LineOfShotCoordinates.charAt(0) - 65;
             int column = Integer.parseInt(LineOfShotCoordinates.substring(1)) - 1;
 
-            if ((raw < 0 || raw > ('J' - 65)) || (column < 0 || column > 9)) {
+            if ((row < 0 || row > ('J' - 65)) || (column < 0 || column > 9)) {
                 System.out.println("Error! You entered the wrong coordinates! Try again:\n");
             } else {
                 isShot = true;
-                if (field[raw][column] == 'O') {
-                    field[raw][column] = 'X';
-                    rivalField[raw][column] = 'X';
-                    printField();
-                    System.out.println("You hit a ship!\n");
+                if (field[row][column] == 'O') {
+                    field[row][column] = 'X';
+                    fieldForRival[row][column] = 'X';
+                    printFieldForRival();
+                    for (Ship ship : ships) {
+                        if (ship.isHorizontal()) {
+                            int shipRow = ship.getRow1();
+                            for (int shipColumn : ship.getOccupiedByShip().keySet()) {
+                                if ((row == shipRow) && (column == shipColumn)) {
+                                    if (ship.isSunk()) {
+                                        countOfSunkShips++;
+                                        if (countOfSunkShips == ships.length) {
+                                            System.out.println("You sank the last ship. You won. Congratulations!\n");
+                                            areShipsDestroyed = true;
+                                            return;
+                                        }
+                                        System.out.println("You sank a ship! Specify a new target:\n");
+                                    } else {
+                                        System.out.println("You hit a ship! Try again:\n");
+                                    }
+                                    return;
+                                }
+                            }
+                        } else {
+                            int shipColumn = ship.getColumn1();
+                            for (int shipRow : ship.getOccupiedByShip().keySet()) {
+                                if ((row == shipRow) && (column == shipColumn)) {
+                                    if (ship.isSunk()) {
+                                        countOfSunkShips++;
+                                        if (countOfSunkShips == ships.length) {
+                                            System.out.println("You sank the last ship. You won. Congratulations!\n");
+                                            areShipsDestroyed = true;
+                                            return;
+                                        }
+                                        System.out.println("You sank a ship! Specify a new target:\n");
+                                    } else {
+                                        System.out.println("You hit a ship!\n");
+                                    }
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                } else if (field[row][column] == 'X') {
+                    printFieldForRival();
+                    System.out.println("You hit a ship! Try again:\n");
                 } else {
-                    field[raw][column] = 'M';
-                    rivalField[raw][column] = 'M';
-                    printRivalField();
-                    System.out.println("You missed!\n");
+                    field[row][column] = 'M';
+                    fieldForRival[row][column] = 'M';
+                    printFieldForRival();
+                    System.out.println("You missed. Try again:\n");
                 }
             }
         }
@@ -88,9 +140,9 @@ public class Field {
 
     private void addShipToField(Ship ship) {
         int column1 = ship.getColumn1();
-        int raw1 = ship.getRaw1();
+        int raw1 = ship.getRow1();
         int column2 = ship.getColumn2();
-        int raw2 = ship.getRaw2();
+        int raw2 = ship.getRow2();
 
         if (raw1 == raw2) {
             int left = column1;
